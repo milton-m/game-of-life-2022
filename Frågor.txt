@@ -1,0 +1,1 @@
+Fråga om variabelerna "spelar" och "uppställning" ska ligga i börja av koden eller innan "while spelar" - loopen

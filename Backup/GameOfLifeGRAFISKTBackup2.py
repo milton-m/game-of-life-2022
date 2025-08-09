@@ -1,0 +1,106 @@
+import pygame
+from time import sleep
+
+pygame.init()
+
+antalrader = 200
+antalkolumner = 200
+startr = 130
+slutr = 169
+startk = 130
+slutk = 169
+skärm = pygame.display.set_mode(((slutk-startk+1)*16+1,(slutr-startr+1)*16+1))
+
+färg = ()   # Tupel som antingen antar vit eller blå
+vit = (255,255,255)
+blå = (0,0,255)
+
+rad = []    # En rad med vågor
+jämför = [] # Bräde för "cellanalys"
+
+bräde = []
+
+# Skapar en rad med vågor
+for k in range(antalkolumner):
+    rad.append("~")
+
+# Skapar båtbrädet av vågorna
+for r in range (antalrader):  # Sätter in raderna i brädet
+    bräde.append(list(rad))
+
+def rita_bräde():
+    for rindex in range(startr, slutr+1):
+        for kindex in range(startk, slutk+1):
+            if bräde[rindex][kindex] == "X":
+                färg = blå
+            else:
+                färg = vit
+            pygame.draw.rect(skärm, färg, ((1+(kindex-startk)*16, 1+(rindex-startr)*16),(15,15)))
+    pygame.display.flip()
+
+def generationsbyte():
+    jämför = []
+    for r in range(0, antalrader):
+        jämför.append([])
+        for k in range(0, antalkolumner):
+            jämför[r].append(bräde[r][k])
+    for cellr in range(0, antalrader):
+        for cellk in range(0, antalkolumner):
+            grannar = 0     # Räknar antalet grannar om cellen är "~" eller antalet grannar +1 om cellen är "X"
+            for radindex in range(cellr-1, cellr+2): # Radindex som eventuellt ska undersökas
+                if 0 <= radindex < antalrader:  # Kollar enbart de radindex som faktiskt finns (då en cell kan ligga intill en kant)
+                    for kolumnindex in range(cellk-1, cellk+2): # Kolumnindex -||-
+                        if 0 <= kolumnindex < antalkolumner: # Kollar enbart de kolumnindex som faktiskt finns (-||-)
+                            if jämför[radindex][kolumnindex] == "X":
+                                grannar += 1
+            if jämför[cellr][cellk] == "~" and grannar == 3:
+                bräde[cellr][cellk] = "X"
+            elif jämför[cellr][cellk] == "X":
+                grannar -= 1
+                if grannar<2 or grannar>3:
+                    bräde[cellr][cellk] = "~"
+    #sleep(0.05)
+
+spelar = True
+uppställning = True
+while spelar:
+    rita_bräde()
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT: 
+            pygame.quit()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP and startr != 0:
+                startr -= 1
+                slutr -= 1
+            if event.key == pygame.K_DOWN and slutr != antalrader - 1:
+                startr += 1
+                slutr += 1
+            if event.key == pygame.K_LEFT and startk != 0:
+                startk -= 1
+                slutk -= 1
+            if event.key == pygame.K_RIGHT and slutk != antalkolumner - 1:
+                startk += 1
+                slutk += 1
+
+        if uppställning:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    pos = list(pygame.mouse.get_pos())
+                    pos[0] = (pos[0]-1)//16+startk
+                    pos[1] = (pos[1]-1)//16+startr
+                    if bräde[pos[1]][pos[0]] == "~":
+                        bräde[pos[1]][pos[0]] = "X"
+                    else:
+                        bräde[pos[1]][pos[0]] = "~"    
+                elif event.button == 3:
+                    uppställning = False
+        
+    if uppställning == False:
+        generationsbyte()
+
+
+
+
+
+
